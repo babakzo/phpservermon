@@ -1,4 +1,7 @@
 {% import 'main/macros.tpl.html' as macro %}
+
+<script type="text/javascript" src="static/js/config.js"></script>
+
 <form class="form-horizontal" name="edit_config" action="index.php?mod=config&amp;action=save" id="edit_config" method="post">
     <ul class="nav nav-tabs">
       <li class="{{ general_active }}"><a href="#config-general" data-toggle="tab">{{ label_general }}</a></li>
@@ -125,46 +128,78 @@
                     <input type="text" id="email_from_email" name="email_from_email" value="{{ email_from_email }}" maxlength="255" />
                 </div>
             </div>
+
             <div class="control-group">
                 <div class="controls">
-	                <label class="checkbox" for="email_smtp"><input type="checkbox" id="email_smtp" name="email_smtp[]" {{ email_smtp_checked|raw }} />{{ label_email_smtp }}</label>
+	                <label class="checkbox" for="email_smtp">
+                        <input type="checkbox" id="email_smtp" name="email_smtp[]" data-toggle-target="#email_smtp_config_container" {{ email_smtp_checked|raw }} />
+                        {{ label_email_smtp }}
+                    </label>
                 </div>
             </div>
+
+            <div id="email_smtp_config_container" class="hide">
+                <div class="control-group">
+                    <label class="control-label" for="email_smtp_host">{{ label_email_smtp_host }}</label>
+                    <div class="controls">
+                        <input type="text" id="email_smtp_host" name="email_smtp_host" value="{{ email_smtp_host }}" maxlength="100" placeholder="{{ label_email_smtp_host }}" />
+                        <input type="text" class="input-small" id="email_smtp_port" name="email_smtp_port" value="{{ email_smtp_port }}" maxlength="10" placeholder="{{ label_email_smtp_port }}" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="email_smtp_security">{{ label_email_smtp_security }}</label>
+                    <div class="controls">
+                        <select id="email_smtp_security" name="email_smtp_security">
+                            <option value="" {{ email_smtp_security_selected_|raw }}>{{ label_email_smtp_security_none }}</option>
+                            <option value="ssl" {{ email_smtp_security_selected_ssl|raw }}>SSL</option>
+                            <option value="tls" {{ email_smtp_security_selected_tls|raw }}>TLS</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="email_smtp_username">{{ label_email_smtp_username }}</label>
+                    <div class="controls">
+                        <input type="text" id="email_smtp_username" name="email_smtp_username" value="{{ email_smtp_username }}" maxlength="100" placeholder="{{ label_email_smtp_noauth }}" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="email_smtp_password">{{ label_email_smtp_password }}</label>
+                    <div class="controls">
+                        <input type="password" id="email_smtp_password" name="email_smtp_password" value="{{ email_smtp_password }}" maxlength="100" placeholder="{{ label_email_smtp_noauth }}" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button class="btn btn-primary show-modal" data-modal-id="testEmail">{{ label_test }}</button>
+                        <input type="hidden" name="test_email" value="0" />
+                    </div>
+                </div>
+            </div>
+
             <div class="control-group">
-                <label class="control-label" for="email_smtp_host">{{ label_email_smtp_host }}</label>
                 <div class="controls">
-                    <input type="text" id="email_smtp_host" name="email_smtp_host" value="{{ email_smtp_host }}" maxlength="100" placeholder="{{ label_email_smtp_host }}" />
-                    <input type="text" class="input-small" id="email_smtp_port" name="email_smtp_port" value="{{ email_smtp_port }}" maxlength="10" placeholder="{{ label_email_smtp_port }}" />
+                    <label class="checkbox" for="sparkpost_config_toggle">
+                        <input type="checkbox" id="sparkpost" name="sparkpost[]" data-toggle-target="#sparkpost_config_container" {{ sparkpost_checked|raw }} />
+                        Enable Sparkpost
+                    </label>
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label" for="email_smtp_security">{{ label_email_smtp_security }}</label>
-                <div class="controls">
-                    <select id="email_smtp_security" name="email_smtp_security">
-                        <option value="" {{ email_smtp_security_selected_|raw }}>{{ label_email_smtp_security_none }}</option>
-                        <option value="ssl" {{ email_smtp_security_selected_ssl|raw }}>SSL</option>
-                        <option value="tls" {{ email_smtp_security_selected_tls|raw }}>TLS</option>
-					</select>
+
+            <div id="sparkpost_config_container" class="{% if not sparkpost_checked %}hide{% endif %}">
+                <div class="control-group">
+                    <label class="control-label" for="sparkpost_api_key">Sparkpost API Key</label>
+                    <div class="controls">
+                        <input id="sparkpost_api_key" name="sparkpost_api_key" value="{{ sparkpost_api_key }}" maxlength="255" placeholder="API Key">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button class="btn btn-primary">{{ label_test }}</button>
+                        <input type="hidden" name="test_sparkpost" value="0" />
+                    </div>
                 </div>
             </div>
-            <div class="control-group">
-                <label class="control-label" for="email_smtp_username">{{ label_email_smtp_username }}</label>
-                <div class="controls">
-                    <input type="text" id="email_smtp_username" name="email_smtp_username" value="{{ email_smtp_username }}" maxlength="100" placeholder="{{ label_email_smtp_noauth }}" />
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="email_smtp_password">{{ label_email_smtp_password }}</label>
-                <div class="controls">
-                    <input type="password" id="email_smtp_password" name="email_smtp_password" value="{{ email_smtp_password }}" maxlength="100" placeholder="{{ label_email_smtp_noauth }}" />
-                </div>
-            </div>
-			<div class="control-group">
-				<div class="controls">
-					<button class="btn btn-primary show-modal" data-modal-id="testEmail">{{ label_test }}</button>
-					<input type="hidden" name="test_email" value="0" />
-				</div>
-			</div>
+
             <div class="form-actions">
                 <button class="btn btn-success" type="submit" name="email_submit" >{{ label_save }}</button>
             </div>

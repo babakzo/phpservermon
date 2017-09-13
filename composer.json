@@ -15,7 +15,10 @@
 		"php-pushover/php-pushover": "dev-master",
 		"twig/twig": "1.*",
 		"paragonie/random_compat" : "1.1.6",
-		"indigophp/hash-compat" : "1.1.0"
+		"indigophp/hash-compat" : "1.1.0",
+		"guzzlehttp/guzzle": "^6.3",
+		"php-http/guzzle6-adapter": "^1.1",
+		"sparkpost/sparkpost": "^2.1"
 	},
 	"autoload": {
 		"files": [
