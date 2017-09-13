@@ -46,6 +46,7 @@ class ConfigController extends AbstractController {
 		'log_sms',
 		'log_pushover',
 		'show_update',
+    'sparkpost'
 	);
 
 	/**
@@ -66,6 +67,7 @@ class ConfigController extends AbstractController {
 		'sms_gateway_password',
 		'sms_from',
 		'pushover_api_token',
+    'sparkpost_api_key'
 	);
 
 	private $default_tab = 'general';
