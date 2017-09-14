@@ -32,7 +32,9 @@
  * @see \psm\Util\Server\Updater\Autorun
  */
 namespace psm\Util\Server\Updater;
+use phpmailerException;
 use psm\Service\Database;
+use psm\Util\SparkPostClient;
 
 class StatusNotifier {
 
@@ -90,13 +92,25 @@ class StatusNotifier {
 	 */
 	protected $status_new;
 
-	function __construct(Database $db) {
+  /**
+   * @var boolean
+   */
+	private $sparkpostEnabled;
+
+  /**
+   * @var SparkPostClient
+   */
+	private $sparkpostClient;
+
+	function __construct(Database $db, SparkPostClient $sparkpostClient) {
 		$this->db = $db;
+		$this->sparkpostClient = $sparkpostClient;
 
 		$this->send_emails = psm_get_conf('email_status');
 		$this->send_sms = psm_get_conf('sms_status');
 		$this->send_pushover = psm_get_conf('pushover_status');
 		$this->save_logs = psm_get_conf('log_status');
+		$this->sparkpostEnabled = psm_get_conf('sparkpost');
 	}
 
 	/**
@@ -195,7 +209,7 @@ class StatusNotifier {
 	 * This functions performs the email notifications
 	 *
 	 * @param array $users
-	 * @return boolean
+	 * @return void
 	 */
 	protected function notifyByEmail($users) {
 		// build mail object with some default values
@@ -207,21 +221,31 @@ class StatusNotifier {
 		$mail->Body		= utf8_decode($body);
 		$mail->AltBody	= str_replace('<br/>', "\n", $body);
 
-        if(psm_get_conf('log_email')) {
-            $log_id = psm_add_log($this->server_id, 'email', $body);
-   	    }
+		if(psm_get_conf('log_email')) {
+		  $log_id = psm_add_log($this->server_id, 'email', $body);
+		}
 
 		// go through empl
-	    foreach ($users as $user) {
-            if(!empty($log_id)) {
-       	    	psm_add_log_user($log_id, $user['user_id']);
-       	    }
+    foreach ($users as $user) {
+		  if(!empty($log_id)) {
+		    psm_add_log_user($log_id, $user['user_id']);
+		  }
 
-	    	// we sent a seperate email to every single user.
-	    	$mail->AddAddress($user['email'], $user['name']);
-	    	$mail->Send();
-	    	$mail->ClearAddresses();
-	    }
+		  // we sent a seperate email to every single user.
+      $mail->AddAddress($user['email'], $user['name']);
+
+		  try {
+		    $mail->Send();
+      } catch (phpmailerException $e) {
+		    error_log($e->errorMessage(), E_WARNING);
+      }
+
+		  $mail->ClearAddresses();
+		}
+
+    if ($this->sparkpostEnabled) {
+		  $this->sparkpostClient->sendSync($users, $mail);
+    }
 	}
 
 	/**
