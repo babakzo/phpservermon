@@ -27,6 +27,7 @@
 
 namespace psm\Module\Config\Controller;
 use psm\Module\AbstractController;
+use psm\Module\Config\SparkPostTester;
 use psm\Service\Database;
 
 class ConfigController extends AbstractController {
@@ -188,7 +189,9 @@ class ConfigController extends AbstractController {
 				$this->testSMS();
 			} elseif(!empty($_POST['test_pushover'])) {
 				$this->testPushover();
-			}
+			} elseif (!empty($_POST['test_sparkpost'])) {
+			  $this->testSparkPost();
+      }
 
 			if($language_refresh) {
 				header('Location: ' . psm_build_url(array('mod' => 'config'), true, false));
@@ -288,6 +291,21 @@ class ConfigController extends AbstractController {
 			}
 		}
 	}
+
+  private function testSparkPost()
+  {
+    /** @var SparkPostTester $sparkPostTester */
+    $sparkPostTester = $this->container->get('sparkpost.tester');
+
+    if($sparkPostTester->sendTestingEmail($this->getUser()->getUser())) {
+      $this->addMessage(psm_get_lang('config', 'email_sent'), 'success');
+    } else {
+      $this->addMessage(
+        sprintf('%s:%s', psm_get_lang('config', 'email_error'), $sparkPostTester->getErrorMessage()),
+        'error'
+      );
+    }
+  }
 
 	protected function getLabels() {
 		return array(

@@ -138,7 +138,7 @@
                 </div>
             </div>
 
-            <div id="email_smtp_config_container" class="hide">
+            <div id="email_smtp_config_container" class="{% if not email_smtp_checked %}hide{% endif %}">
                 <div class="control-group">
                     <label class="control-label" for="email_smtp_host">{{ label_email_smtp_host }}</label>
                     <div class="controls">
@@ -194,7 +194,7 @@
                 </div>
                 <div class="control-group">
                     <div class="controls">
-                        <button class="btn btn-primary">{{ label_test }}</button>
+                        <button class="btn btn-primary show-modal" data-modal-id="testEmail">{{ label_test }}</button>
                         <input type="hidden" name="test_sparkpost" value="0" />
                     </div>
                 </div>
