@@ -22,6 +22,19 @@ xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/sc
 		<parameter key="db.user" type="constant">PSM_DB_USER</parameter>
 		<parameter key="db.pass" type="constant">PSM_DB_PASS</parameter>
 		<parameter key="db.name" type="constant">PSM_DB_NAME</parameter>
+
+
+		<parameter key="tc_ldap_login_password_and_role_manager_base_dn" type="constant">DC=thecrewcommunication,DC=com</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_domain_controllers" type="constant">skywalker.thecrewcommunication.com</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_loginattr" type="constant">mail</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_fnameattr" type="constant">null</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_lnameattr" type="constant">sn</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_emailattr" type="constant">mail</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_adminroleattr" type="constant">webadmin</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_passwordexpire" type="constant">null</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_newuserredirect" type="constant">null</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_use_tls" type="constant">no</parameter>
+		<parameter key="tc_ldap_login_password_and_role_manager_memberidmap" type="constant">null</parameter>
 	</parameters>
 
 	<services>
