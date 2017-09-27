@@ -40,7 +40,9 @@
         </p>
         <input type="hidden" name="action" value="login">
         <p class="forgetmenot">
-            <label for="rememberme"><input type="checkbox" id="rememberme" name="user_rememberme" value="1" {{ value_rememberme }}/>{{ label_remember_me }}</label>
+            <label for="rememberme">
+                <input type="checkbox" id="rememberme" name="user_rememberme" value="1" {% if remember_me %}checked="checked"{% endif %} />{{ label_remember_me }}
+            </label>
         </p>
         <p class="submit">
             <input type="submit" class="button button-primary button-large" value="{{ label_login }}"/>

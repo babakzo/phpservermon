@@ -105,7 +105,7 @@ class LoginController extends AbstractController {
             'label_remember_me' => psm_get_lang('login', 'remember_me'),
             'label_login' => psm_get_lang('login', 'login'),
             'value_user_name' => (isset($_POST['user_name'])) ? $_POST['user_name'] : '',
-            'value_rememberme' => (isset($rememberMe) && $rememberMe) ? 'checked="checked"' : '',
+            'remember_me' => isset($rememberMe) && $rememberMe
         ]));
 	}
 
