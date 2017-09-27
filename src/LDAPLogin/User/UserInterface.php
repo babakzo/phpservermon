@@ -1,11 +1,11 @@
 <?php
 
-namespace LDAPLogin;
+namespace LDAPLogin\User;
 
 interface UserInterface
 {
     /**
-     * @return string
+     * @return int
      */
     function getId();
 
@@ -67,4 +67,21 @@ interface UserInterface
      * @return UserInterface
      */
     function setRegularRole();
+
+    /**
+     * @return array
+     */
+    function toArray();
+
+    /**
+     * @param int $id
+     *
+     * @return UserInterface
+     */
+    function setId($id);
+
+    /**
+     * @return boolean
+     */
+    function isAdmin();
 }

@@ -18,7 +18,8 @@
 		"indigophp/hash-compat" : "1.1.0",
 		"guzzlehttp/guzzle": "^6.3",
 		"php-http/guzzle6-adapter": "^1.1",
-		"sparkpost/sparkpost": "^2.1"
+		"sparkpost/sparkpost": "^2.1",
+		"symfony/options-resolver": "^3.3"
 	},
 	"autoload": {
 		"files": [
@@ -27,7 +28,8 @@
 			"./src/includes/password_compatibility_library.inc.php"
 		],
 		"psr-4": {
-			"psm\\": "src/psm/"
+			"psm\\": "src/psm/",
+			"LDAPLogin\\": "src/LDAPLogin/"
 		}
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace LDAPLogin;
+namespace LDAPLogin\User;
 
 class UsernameSanitizer
 {
