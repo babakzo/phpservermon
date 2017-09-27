@@ -9,11 +9,13 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>{{ title_sign_in }}</title>
+    <meta name='robots' content='noindex,follow'/>
+    <meta name="viewport" content="width=device-width"/>
     <link rel='stylesheet' href='/static/css/ldap-login.css' type='text/css' media='all'/>
     <link rel='stylesheet' id='jquery.bxslider-css' href='/static/css/jquery.bxslider.css' type='text/css' media='all'/>
     <link rel='stylesheet' id='Axl_Testimonials_Widget-css' href='/static/css/testimonials-widget.css' type='text/css' media='all'/>
-    <meta name='robots' content='noindex,follow'/>
-    <meta name="viewport" content="width=device-width"/>
+    <script type="text/javascript" src="/static/plugin/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="/static/js/ldap-login.js"></script>
 </head>
 <body class="login login-action-login wp-core-ui locale-en-us" style="background-image: url('/static/img/thecrew-bkg.jpg'); background-size: cover ">
 <div id="login">
@@ -48,17 +50,6 @@
             <input type="submit" class="button button-primary button-large" value="{{ label_login }}"/>
         </p>
     </form>
-
-    <script type="text/javascript">
-        setTimeout(function () {
-            try {
-                var d = document.getElementById('user_login');
-                d.focus();
-                d.select();
-            } catch (e) {
-            }
-        }, 200);
-    </script>
 </div>
 
 
