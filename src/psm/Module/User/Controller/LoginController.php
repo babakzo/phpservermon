@@ -81,12 +81,10 @@ class LoginController extends AbstractController {
         }
 
 	    if(isset($_POST['user_name']) && isset($_POST['user_password'])) {
-	        $rememberme = (isset($_POST['user_rememberme'])) ? true : false;
-			/** @var Authenticator $ldapAuthenticator */
-			$ldapAuthenticator = $this->container->get('ldap_login.authenticator');
+	        $rememberMe = (isset($_POST['user_rememberme'])) ? true : false;
 
 			try {
-			    $user = $ldapAuthenticator->authenticate($_POST['user_name'], $_POST['user_password']);
+			    $user = $this->getLDAPAuthenticator()->authenticate($_POST['user_name'], $_POST['user_password']);
 			    $this->getUser()->setUserLoggedIn($user->getId());
                 $this->redirect();
 			} catch (AuthenticationException $e) {
@@ -102,7 +100,7 @@ class LoginController extends AbstractController {
             'label_remember_me' => psm_get_lang('login', 'remember_me'),
             'label_login' => psm_get_lang('login', 'login'),
             'value_user_name' => (isset($_POST['user_name'])) ? $_POST['user_name'] : '',
-            'value_rememberme' => (isset($rememberme) && $rememberme) ? 'checked="checked"' : '',
+            'value_rememberme' => (isset($rememberMe) && $rememberMe) ? 'checked="checked"' : '',
         ]));
 	}
 
@@ -212,5 +210,15 @@ class LoginController extends AbstractController {
     {
         header('Location: ' . psm_build_url($action));
         die();
+    }
+
+    /**
+     * @return Authenticator
+     */
+    private function getLDAPAuthenticator()
+    {
+        /** @var Authenticator $service */
+        $service = $this->container->get('ldap_login.authenticator');
+        return $service;
     }
 }
