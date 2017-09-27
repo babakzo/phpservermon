@@ -85,7 +85,12 @@ class LoginController extends AbstractController {
 
 			try {
 			    $user = $this->getLDAPAuthenticator()->authenticate($_POST['user_name'], $_POST['user_password']);
-			    $this->getUser()->setUserLoggedIn($user->getId());
+                $this->getUser()->setUserLoggedIn($user->getId(), true);
+
+                if ($rememberMe) {
+                    $this->getUser()->newRememberMeCookie();
+                }
+
                 $this->redirect();
 			} catch (AuthenticationException $e) {
 			    $this->addMessage(psm_get_lang('login', 'error_login_incorrect'), 'error');

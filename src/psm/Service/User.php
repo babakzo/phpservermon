@@ -261,7 +261,7 @@ class User {
     /**
      * Create all data needed for remember me cookie connection on client and server side
      */
-    protected function newRememberMeCookie() {
+    public function newRememberMeCookie() {
 		// generate 64 char random string and store it in current user data
 		$random_token_string = hash('sha256', mt_rand());
 		$sth = $this->db_connection->prepare('UPDATE '.PSM_DB_PREFIX.'users SET rememberme_token = :user_rememberme_token WHERE user_id = :user_id');
