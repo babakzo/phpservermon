@@ -23,18 +23,20 @@ xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/sc
 		<parameter key="db.pass" type="constant">PSM_DB_PASS</parameter>
 		<parameter key="db.name" type="constant">PSM_DB_NAME</parameter>
 
-
-		<parameter key="tc_ldap_login_password_and_role_manager_base_dn" type="constant">DC=thecrewcommunication,DC=com</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_domain_controllers" type="constant">skywalker.thecrewcommunication.com</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_loginattr" type="constant">mail</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_fnameattr" type="constant">null</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_lnameattr" type="constant">sn</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_emailattr" type="constant">mail</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_adminroleattr" type="constant">webadmin</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_passwordexpire" type="constant">null</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_newuserredirect" type="constant">null</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_use_tls" type="constant">no</parameter>
-		<parameter key="tc_ldap_login_password_and_role_manager_memberidmap" type="constant">null</parameter>
+		<parameter key="ldap_login.configuration_parameters" type="collection">
+			<parameter key="base_dn" type="string">DC=thecrewcommunication,DC=com</parameter>
+			<parameter key="domain_controllers" type="string">192.168.1.222</parameter>
+			<parameter key="login_att" type="string">mail</parameter>
+			<parameter key="email_attr" type="string">mail</parameter>
+			<parameter key="admin_role_attr" type="string">webadmin</parameter>
+			<parameter key="use_tls" type="constant">false</parameter>
+			<parameter key="bind_dn" type="constant">null</parameter>
+			<parameter key="bind_password" type="constant">null</parameter>
+			<parameter key="first_name_attr" type="constant">null</parameter>
+			<parameter key="last_name_attr" type="string">sn</parameter>
+			<parameter key="password_expiration_attr" type="constant">null</parameter>
+			<parameter key="member_id_map_attr" type="constant">null</parameter>
+		</parameter>
 	</parameters>
 
 	<services>
@@ -60,6 +62,22 @@ xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/sc
 
 		<service id="sparkpost.tester" class="psm\Module\Config\SparkPostTester">
 			<argument type="service" id="sparkpost.client" />
+		</service>
+
+		<service id="ldap_login.user.repository" class="LDAPLogin\User\UserRepository">
+			<argument type="service" id="db" />
+		</service>
+
+		<service id="ldap_login.user.username_sanitizer" class="LDAPLogin\User\UsernameSanitizer">
+		</service>
+
+		<service id="ldap_login.authenticator_factory" class="LDAPLogin\AuthenticatorFactory">
+			<argument type="service" id="ldap_login.user.repository" />
+			<argument type="service" id="ldap_login.user.username_sanitizer" />
+			<argument>%ldap_login.configuration_parameters%</argument>
+		</service>
+		<service  id="ldap_login.authenticator" class="LDAPLogin\Authenticator">
+			<factory service="ldap_login.authenticator_factory" method="createAuthenticator" />
 		</service>
 
 		<service id="event" class="Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher">

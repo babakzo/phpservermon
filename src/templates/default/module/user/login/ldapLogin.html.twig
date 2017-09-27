@@ -1,0 +1,65 @@
+{% import 'main/macros.tpl.html' as macro %}
+<!DOCTYPE html>
+<!--[if IE 8]>
+<html xmlns="http://www.w3.org/1999/xhtml" class="ie8" lang="en-US">
+<![endif]-->
+<!--[if !(IE 8) ]><!-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">
+<!--<![endif]-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>{{ title_sign_in }}</title>
+    <link rel='stylesheet' href='/static/css/ldap-login.css' type='text/css' media='all'/>
+    <link rel='stylesheet' id='jquery.bxslider-css' href='/static/css/jquery.bxslider.css' type='text/css' media='all'/>
+    <link rel='stylesheet' id='Axl_Testimonials_Widget-css' href='/static/css/testimonials-widget.css' type='text/css' media='all'/>
+    <meta name='robots' content='noindex,follow'/>
+    <meta name="viewport" content="width=device-width"/>
+</head>
+<body class="login login-action-login wp-core-ui locale-en-us" style="background-image: url('/static/img/thecrew-bkg.jpg'); background-size: cover ">
+<div id="login">
+    <h1><a href="https://www.thecrewcommunication.com" title="The Crew Communication" tabindex="-1" target="_blank">The Crew Communication</a></h1>
+
+    <div id="login_error{% if messages is empty %} hidden{% endif %}">
+        {% for msg in messages %}
+            <p class="pull-left span1"><i class="icon-{{ msg.icon }}"></i></p>
+            <p>{{ msg.message }}</p>
+        {% endfor %}
+    </div>
+
+    <form name="loginform" id="loginform" action="/?mod=user_login&action=ldaplogin" method="post">
+        {{ macro.csrf_input() }}
+        <p>
+            <label for="user_login">{{ label_username }}<br/>
+                <input type="text" name="user_name" id="user_login" class="input" placeholder="{{ label_username }}" value="{{ value_user_name }}" size="20" required/>
+            </label>
+        </p>
+        <p>
+            <label for="user_pass">{{ label_password }}<br/>
+                <input type="password" name="user_password" id="user_pass" class="input" value="" size="20" placeholder="{{ label_password }}" required/>
+            </label>
+        </p>
+        <input type="hidden" name="action" value="login">
+        <p class="forgetmenot">
+            <label for="rememberme"><input type="checkbox" id="rememberme" name="user_rememberme" value="1" {{ value_rememberme }}/>{{ label_remember_me }}</label>
+        </p>
+        <p class="submit">
+            <input type="submit" class="button button-primary button-large" value="{{ label_login }}"/>
+        </p>
+    </form>
+
+    <script type="text/javascript">
+        setTimeout(function () {
+            try {
+                var d = document.getElementById('user_login');
+                d.focus();
+                d.select();
+            } catch (e) {
+            }
+        }, 200);
+    </script>
+</div>
+
+
+<div class="clear"></div>
+</body>
+</html>

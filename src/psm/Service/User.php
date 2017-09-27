@@ -246,7 +246,7 @@ class User {
 	 * @param int $user_id
 	 * @param boolean $regenerate regenerate session id against session fixation?
 	 */
-	protected function setUserLoggedIn($user_id, $regenerate = false) {
+	public function setUserLoggedIn($user_id, $regenerate = false) {
 		if($regenerate) {
 			$this->session->invalidate();
 		}

@@ -27,8 +27,11 @@
  **/
 
 namespace psm\Module\User\Controller;
+use LDAPLogin\AuthenticationException;
+use LDAPLogin\Authenticator;
 use psm\Module\AbstractController;
 use psm\Service\Database;
+use Symfony\Component\HttpFoundation\Response;
 
 class LoginController extends AbstractController {
 
@@ -37,9 +40,7 @@ class LoginController extends AbstractController {
 
 		$this->setMinUserLevelRequired(PSM_USER_ANONYMOUS);
 
-		$this->setActions(array(
-			'login', 'forgot', 'reset',
-		), 'login');
+		$this->setActions(['login', 'forgot', 'reset', 'ldaplogin'], 'login');
 
 		$this->addMenu(false);
 	}
@@ -54,9 +55,7 @@ class LoginController extends AbstractController {
 			);
 
 			if($result) {
-				// success login, redirect
-				header('Location: ' . psm_build_url($_SERVER['QUERY_STRING']));
-				die();
+				$this->redirect($_SERVER['QUERY_STRING']);
 			} else {
 				$this->addMessage(psm_get_lang('login', 'error_login_incorrect'), 'error');
 			}
@@ -74,6 +73,37 @@ class LoginController extends AbstractController {
 		);
 
 		return $this->twig->render('module/user/login/login.tpl.html', $tpl_data);
+	}
+
+	protected function executeLdaplogin() {
+	    if ($this->getUser()->isUserLoggedIn()) {
+            $this->redirect();
+        }
+
+	    if(isset($_POST['user_name']) && isset($_POST['user_password'])) {
+	        $rememberme = (isset($_POST['user_rememberme'])) ? true : false;
+			/** @var Authenticator $ldapAuthenticator */
+			$ldapAuthenticator = $this->container->get('ldap_login.authenticator');
+
+			try {
+			    $user = $ldapAuthenticator->authenticate($_POST['user_name'], $_POST['user_password']);
+			    $this->getUser()->setUserLoggedIn($user->getId());
+                $this->redirect();
+			} catch (AuthenticationException $e) {
+			    $this->addMessage(psm_get_lang('login', 'error_login_incorrect'), 'error');
+			}
+	    }
+
+		return new Response($this->twig->render('module/user/login/ldapLogin.html.twig', [
+            'messages' => $this->getMessages(),
+            'title_sign_in' => psm_get_lang('login', 'title_sign_in'),
+            'label_username' => psm_get_lang('login', 'username'),
+            'label_password' => psm_get_lang('login', 'password'),
+            'label_remember_me' => psm_get_lang('login', 'remember_me'),
+            'label_login' => psm_get_lang('login', 'login'),
+            'value_user_name' => (isset($_POST['user_name'])) ? $_POST['user_name'] : '',
+            'value_rememberme' => (isset($rememberme) && $rememberme) ? 'checked="checked"' : '',
+        ]));
 	}
 
 	/**
@@ -173,5 +203,14 @@ class LoginController extends AbstractController {
 
     	$mail->AddAddress($user_email);
     	$mail->Send();
+    }
+
+    /**
+     * @param null|string $action
+     */
+    private function redirect($action = null)
+    {
+        header('Location: ' . psm_build_url($action));
+        die();
     }
 }
