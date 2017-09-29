@@ -1,4 +1,5 @@
 {% import 'main/macros.tpl.html' as macro %}
+
 <div class="container">
   <form class="form-signin" method="post">
 	{{ macro.csrf_input() }}
@@ -11,5 +12,6 @@
     </label>
     <button class="btn btn-primary" type="submit">{{ label_login }}</button>
     <a class="btn" href="?action=forgot">{{ label_password_forgot }}</a>
+    <a class="btn" href="{{ ldap_authentication_route }}">{{ ldap_authentication_label }}</a>
   </form>
 </div>

@@ -3859,7 +3859,9 @@ p {
     line-height: 1.5
 }
 
-.login #login_error, .login .message {
+.login #login_error,
+.login .message,
+.login .login-classic {
     border-left: 4px solid #00a0d2;
     padding: 12px;
     margin-left: 0;
@@ -3871,6 +3873,10 @@ p {
 
 .login #login_error {
     border-left-color: #dc3232
+}
+
+.login .login-classic {
+    margin-top: 20px;
 }
 
 #loginform p.submit, .login-action-lostpassword p.submit {

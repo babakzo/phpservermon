@@ -32,40 +32,47 @@ use LDAPLogin\AuthenticationException;
 use LDAPLogin\Authenticator;
 use psm\Module\AbstractController;
 use psm\Service\Database;
+use psm\Service\User;
 use Symfony\Component\HttpFoundation\Response;
 
 class LoginController extends AbstractController
 {
+    const ACTION_LOGIN_LDAP = 'ldaplogin';
+    const ROUTE_LOGIN_LDAP = 'mod=user_login&action=ldaplogin';
+    const ROUTE_LOGIN_CLASSIC = 'mod=user_login&action=login';
 
-    function __construct(Database $db, \Twig_Environment $twig)
+    public function __construct(Database $db, \Twig_Environment $twig)
     {
         parent::__construct($db, $twig);
 
         $this->setMinUserLevelRequired(PSM_USER_ANONYMOUS);
 
-        $this->setActions(['login', 'forgot', 'reset', 'ldaplogin'], 'login');
+        $this->setActions(['login', 'forgot', 'reset', self::ACTION_LOGIN_LDAP], 'login');
 
         $this->addMenu(false);
     }
 
     protected function executeLogin()
     {
+        $userService = $this->getUser();
+
+        if ($this->shouldSwitchToLDAPAuthentication()) {
+            $this->redirectToAction(self::ACTION_LOGIN_LDAP);
+        }
+
         if (isset($_POST['user_name']) && isset($_POST['user_password'])) {
-            $rememberme = (isset($_POST['user_rememberme'])) ? true : false;
-            $result = $this->getUser()->loginWithPostData(
-                $_POST['user_name'],
-                $_POST['user_password'],
-                $rememberme
-            );
+            $rememberMe = (isset($_POST['user_rememberme'])) ? true : false;
+            $result = $userService->loginWithPostData($_POST['user_name'], $_POST['user_password'], $rememberMe);
 
             if ($result) {
-                $this->redirect($_SERVER['QUERY_STRING']);
+                $userService->rememberAuthenticationMethod(User::AUTHENTICATION_METHOD_REGULAR);
+                $this->redirectToRequestedEndpoint();
             } else {
                 $this->addMessage(psm_get_lang('login', 'error_login_incorrect'), 'error');
             }
         }
 
-        $tpl_data = array(
+        return $this->twig->render('module/user/login/login.html.twig', [
             'title_sign_in' => psm_get_lang('login', 'title_sign_in'),
             'label_username' => psm_get_lang('login', 'username'),
             'label_password' => psm_get_lang('login', 'password'),
@@ -73,30 +80,33 @@ class LoginController extends AbstractController
             'label_login' => psm_get_lang('login', 'login'),
             'label_password_forgot' => psm_get_lang('login', 'password_forgot'),
             'value_user_name' => (isset($_POST['user_name'])) ? $_POST['user_name'] : '',
-            'value_rememberme' => (isset($rememberme) && $rememberme) ? 'checked="checked"' : '',
-        );
-
-        return $this->twig->render('module/user/login/login.tpl.html', $tpl_data);
+            'value_rememberme' => (isset($rememberMe) && $rememberMe) ? 'checked="checked"' : '',
+            'ldap_authentication_label' => psm_get_lang('login', 'ldap_authentication_label'),
+            'ldap_authentication_route' => sprintf('/?%s', self::ROUTE_LOGIN_LDAP)
+        ]);
     }
 
     protected function executeLdaplogin()
     {
         if ($this->getUser()->isUserLoggedIn()) {
-            $this->redirect();
+            $this->redirectToRequestedEndpoint();
         }
 
         if (isset($_POST['user_name']) && isset($_POST['user_password'])) {
             $rememberMe = (isset($_POST['user_rememberme'])) ? true : false;
+            $userService = $this->getUser();
 
             try {
                 $user = $this->getLDAPAuthenticator()->authenticate($_POST['user_name'], $_POST['user_password']);
-                $this->getUser()->setUserLoggedIn($user->getId(), true);
+                $userService
+                     ->setUserLoggedIn($user->getId(), true)
+                     ->rememberAuthenticationMethod(User::AUTHENTICATION_METHOD_LDAP);
 
                 if ($rememberMe) {
-                    $this->getUser()->newRememberMeCookie();
+                    $userService->newRememberMeCookie();
                 }
 
-                $this->redirect();
+                $this->redirectToRequestedEndpoint();
             } catch (AuthenticationException $e) {
                 $this->addMessage(psm_get_lang('login', 'error_login_incorrect'), 'error');
             }
@@ -114,6 +124,8 @@ class LoginController extends AbstractController
                     'label_login' => psm_get_lang('login', 'login'),
                     'value_user_name' => (isset($_POST['user_name'])) ? $_POST['user_name'] : '',
                     'remember_me' => isset($rememberMe) && $rememberMe,
+                    'classic_authentication_label' => psm_get_lang('ldap_login', 'classic_authentication_label'),
+                    'classic_authentication_route' => sprintf('/?%s', self::ROUTE_LOGIN_CLASSIC)
                 ]
             )
         );
@@ -231,12 +243,41 @@ class LoginController extends AbstractController
     }
 
     /**
-     * @param null|string $action
+     * @param array|string $params
+     * @param bool $encodeURL
+     * @param bool $htmlEntities
      */
-    private function redirect($action = null)
+    private function redirect($params = [], $encodeURL = true, $htmlEntities = true)
     {
-        header('Location: '.psm_build_url($action));
+        header('Location: '.psm_build_url($params, $encodeURL, $htmlEntities));
         die();
+    }
+
+    /**
+     * @param string $action
+     */
+    private function redirectToAction($action)
+    {
+        if ($_SERVER['QUERY_STRING'] !== self::ROUTE_LOGIN_LDAP) {
+            $currentUrl = urldecode(html_entity_decode($_SERVER['QUERY_STRING']));
+            $_SESSION['HTTP_REFERRER'] = $currentUrl;
+        }
+
+        $this->redirect(['mod' => 'user_login', 'action' => $action], false, false);
+    }
+
+    private function redirectToRequestedEndpoint()
+    {
+        $param = '';
+
+        if (isset($_SESSION['HTTP_REFERRER'])) {
+            $param = $_SESSION['HTTP_REFERRER'];
+            unset($_SESSION['HTTP_REFERRER']);
+        } elseif (!$this->isCurrentRouteAuthenticating()) {
+            $param = $_SERVER['QUERY_STRING'];
+        }
+
+        $this->redirect($param);
     }
 
     /**
@@ -248,5 +289,21 @@ class LoginController extends AbstractController
         $service = $this->container->get('ldap_login.authenticator');
 
         return $service;
+    }
+
+    /**
+     * @return bool
+     */
+    private function isCurrentRouteAuthenticating()
+    {
+        return $_SERVER['QUERY_STRING'] === self::ROUTE_LOGIN_LDAP || $_SERVER['QUERY_STRING'] === self::ROUTE_LOGIN_CLASSIC;
+    }
+
+    /**
+     * @return bool
+     */
+    private function shouldSwitchToLDAPAuthentication()
+    {
+        return $this->getUser()->getRememberedAuthenticationMethod() === User::AUTHENTICATION_METHOD_LDAP && !$this->isCurrentRouteAuthenticating();
     }
 }
