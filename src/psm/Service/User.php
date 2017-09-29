@@ -43,6 +43,10 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
  * @license http://opensource.org/licenses/MIT MIT License
  */
 class User {
+    const AUTHENTICATION_METHOD_REGULAR = 'connection_method_regular';
+    const AUTHENTICATION_METHOD_LDAP = 'connection_method_ldap';
+    const AUTHENTICATION_METHOD_COOKIE_NAME = 'authentication_method';
+    const TIME_10_YEARS_IN_SECONDS = 60*60*24*365*10;
 
     /**
 	 * The database connection
@@ -241,11 +245,12 @@ class User {
 		return true;
     }
 
-	/**
-	 * Set the user logged in
-	 * @param int $user_id
-	 * @param boolean $regenerate regenerate session id against session fixation?
-	 */
+    /**
+     * Set the user logged in
+     * @param int $user_id
+     * @param boolean $regenerate regenerate session id against session fixation?
+     * @return User
+     */
 	public function setUserLoggedIn($user_id, $regenerate = false) {
 		if($regenerate) {
 			$this->session->invalidate();
@@ -256,10 +261,13 @@ class User {
 		// declare user id, set the login status to true
 		$this->user_id = $user_id;
 		$this->user_is_logged_in = true;
+		
+		return $this;
 	}
 
     /**
      * Create all data needed for remember me cookie connection on client and server side
+     * @return User
      */
     public function newRememberMeCookie() {
 		// generate 64 char random string and store it in current user data
@@ -274,6 +282,8 @@ class User {
 
 		// set cookie
 		setcookie('rememberme', $cookie_string, time() + PSM_LOGIN_COOKIE_RUNTIME, "/", PSM_LOGIN_COOKIE_DOMAIN);
+		
+		return $this;
     }
 
     /**
@@ -503,4 +513,20 @@ class User {
 	public function getSession() {
 		return $this->session;
 	}
+
+    /**
+     * @param string $method
+     * @return User
+     */
+    public function rememberAuthenticationMethod($method = self::AUTHENTICATION_METHOD_REGULAR)
+    {
+        setcookie(self::AUTHENTICATION_METHOD_COOKIE_NAME, $method, time() + self::TIME_10_YEARS_IN_SECONDS, '/', PSM_LOGIN_COOKIE_DOMAIN);
+
+        return $this;
+    }
+
+    public function getRememberedAuthenticationMethod()
+    {
+        return isset($_COOKIE[self::AUTHENTICATION_METHOD_COOKIE_NAME]) ? $_COOKIE[self::AUTHENTICATION_METHOD_COOKIE_NAME] : self::AUTHENTICATION_METHOD_REGULAR;
+    }
 }

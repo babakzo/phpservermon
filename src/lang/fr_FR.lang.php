@@ -298,7 +298,11 @@ $sm_lang = array(
 		'error_reset_invalid_link' => 'Le lien d\initialisation du mot de passe n\'est pas valide.',
 		'success_password_forgot' => 'Un email vous a été envoyé pour réinitialiser votre mot de passe.',
 		'success_password_reset' => 'Votre mot de passe a été réinitialisé.',
+		'ldap_authentication_label' => 'Connexion LDAP'
 	),
+    'ldap_login' => [
+        'classic_authentication_label' => 'Log in via the classic authentication system'
+    ],
 	'error' => array(
 		'401_unauthorized' => 'Non autorisée',
 		'401_unauthorized_description' => 'Vous n\'avez pas les privilèges nécessaires pour voir cette page.',
