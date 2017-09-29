@@ -25,15 +25,15 @@ xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/sc
 
 		<parameter key="ldap_login.configuration_parameters" type="collection">
 			<parameter key="base_dn" type="string">DC=thecrewcommunication,DC=com</parameter>
-			<parameter key="domain_controllers" type="string">192.168.1.222</parameter>
+			<parameter key="domain_controllers" type="string">skywalker.thecrewcommunication.com</parameter>
 			<parameter key="login_att" type="string">mail</parameter>
 			<parameter key="email_attr" type="string">mail</parameter>
 			<parameter key="admin_role_attr" type="string">webadmin</parameter>
 			<parameter key="use_tls" type="constant">false</parameter>
+			<parameter key="last_name_attr" type="string">sn</parameter>
 			<parameter key="bind_dn" type="constant">null</parameter>
 			<parameter key="bind_password" type="constant">null</parameter>
 			<parameter key="first_name_attr" type="constant">null</parameter>
-			<parameter key="last_name_attr" type="string">sn</parameter>
 			<parameter key="password_expiration_attr" type="constant">null</parameter>
 			<parameter key="member_id_map_attr" type="constant">null</parameter>
 		</parameter>
