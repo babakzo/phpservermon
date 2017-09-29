@@ -33,15 +33,16 @@ class UserRepository implements UserRepositoryInterface
     /**
      * @param string $nameOrEmail
      *
-     * @return UserInterface
+     * @return UserInterface|null
      */
     public function getByUsernameOrEmail($nameOrEmail)
     {
         $query_user = $this->dbConnection->prepare('SELECT * FROM '.PSM_DB_PREFIX.'users WHERE user_name LIKE :name_or_email OR email LIKE :name_or_email');
         $query_user->bindValue(':name_or_email', $nameOrEmail, \PDO::PARAM_INT);
         $query_user->execute();
+        $dbUser = $query_user->fetchObject();
 
-        return new User($query_user->fetchObject());
+        return $dbUser ? new User($dbUser) : null;
     }
 
     /**
@@ -51,7 +52,7 @@ class UserRepository implements UserRepositoryInterface
      */
     public function upsert(UserInterface $user)
     {
-        $where = [];
+        $where = null;
         if ($user->getId() > 0) {
             $where['user_id'] = $user->getId();
         }

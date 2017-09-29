@@ -2,6 +2,7 @@
 
 namespace LDAPLogin;
 
+use LDAPLogin\User\User;
 use LDAPLogin\User\UserRepositoryInterface;
 use LDAPLogin\User\UsernameSanitizer;
 use LDAPLogin\User\UserInterface;
@@ -285,6 +286,10 @@ class Authenticator
         }
 
         $user = $this->userRepository->getByUsernameOrEmail($username);
+        if ($user === null) {
+            $user = new User();
+        }
+
         $user
           ->setEmail($ldapUserData[$this->configurationParams->getEmailAttribute()][0])
           ->setLogin($ldapUserData[$this->configurationParams->getLoginAttribute()][0])

@@ -10,9 +10,9 @@ class User implements UserInterface
     private $userObject;
 
     /**
-     * @param \stdClass $userObject
+     * @param null|\stdClass $userObject
      */
-    public function __construct(\stdClass $userObject)
+    public function __construct(\stdClass $userObject = null)
     {
         if (!$userObject) {
             $userObject = new \stdClass();
