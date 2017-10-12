@@ -83,6 +83,10 @@ class Router {
 		$controller = $this->getController($mod, $controller);
 		$action = null;
 
+		if (isset($_GET['token'])) {
+		    $this->container->get('user')->loginWithAccessToken($_GET['token']);
+		}
+
 		try {
 			$this->validateRequest($controller);
 		} catch (\InvalidArgumentException $ex) {

@@ -1,3 +1,6 @@
+/*global Clipboard */
+var SELECTOR_CLIPBOARD_COPY = '[data-clipboard-text]';
+
 $().ready(function() {
 	$('.show-modal').click(function (e) {
 		var $this = $(this);
@@ -76,6 +79,21 @@ $().ready(function() {
 		changeTypeSwitch($('#type').val());
 		changePopularPorts($('#popularPorts').val(), true, $('#type').val());
 	});
+
+	var $clipboardCopyBtn = $(SELECTOR_CLIPBOARD_COPY);
+	if ($clipboardCopyBtn.length > 0) {
+		var clipboard = new Clipboard(SELECTOR_CLIPBOARD_COPY);
+
+        clipboard.on('success', function() {
+            $clipboardCopyBtn
+                .attr('title', 'Copied !')
+				.tooltip('fixTitle')
+				.tooltip('show');
+            setTimeout(function() {
+                $clipboardCopyBtn.tooltip('hide');
+            }, 2000);
+        });
+	}
 });
 
 function changeTypeSwitch(typeInput) {

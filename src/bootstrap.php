@@ -34,6 +34,7 @@ define('PSM_PATH_LANG', PSM_PATH_SRC . 'lang' . DIRECTORY_SEPARATOR);
 // user levels
 define('PSM_USER_ADMIN', 10);
 define('PSM_USER_USER', 20);
+define('PSM_USER_OBSERVER', 25);
 define('PSM_USER_ANONYMOUS', 30);
 
 if(function_exists('date_default_timezone_set') && function_exists('date_default_timezone_get')) {

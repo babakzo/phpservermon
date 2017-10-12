@@ -59,6 +59,13 @@
 			<a class="btn btn-small btn-danger show-modal" href="{{ user.url_delete|raw }}" title="{{ label_delete }}" data-modal-id="delete" data-modal-param="{{ user.user_name }}">
 				<i class="icon-remove icon-white"></i>
 			</a>
+			{% if user.url_token_generation is defined %}
+			<a class="btn btn-small" href="{{ user.url_token_generation|raw }}" title="{{ label_generate_token }}"><i class="icon-lock"></i></a>
+			{% elseif user.url_token is defined %}
+			<button class="btn btn-small" type="button" data-clipboard-action="copy" data-clipboard-text="{{ user.url_token }}" title="{{ label_copy_token }}" data-trigger="manual">
+				<i class="icon-share"></i>
+			</button>
+			{% endif %}
 		</td>
 	</tr>
 	{% endfor %}

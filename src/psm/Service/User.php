@@ -28,6 +28,7 @@
  **/
 
 namespace psm\Service;
+use psm\Util\User\AccessToken;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -271,19 +272,60 @@ class User {
      */
     public function newRememberMeCookie() {
 		// generate 64 char random string and store it in current user data
-		$random_token_string = hash('sha256', mt_rand());
-		$sth = $this->db_connection->prepare('UPDATE '.PSM_DB_PREFIX.'users SET rememberme_token = :user_rememberme_token WHERE user_id = :user_id');
-		$sth->execute(array(':user_rememberme_token' => $random_token_string, ':user_id' => $this->getUserId()));
+		$privateToken = $this->generateAndSavePrivateRememberMeToken($this->getUserId());
 
 		// generate cookie string that consists of userid, randomstring and combined hash of both
-		$cookie_string_first_part = $this->getUserId() . ':' . $random_token_string;
-		$cookie_string_hash = hash('sha256', $cookie_string_first_part . PSM_LOGIN_COOKIE_SECRET_KEY);
-		$cookie_string = $cookie_string_first_part . ':' . $cookie_string_hash;
+        $cookieToken = $this->generatePublicRememberMeToken($this->getUserId(), $privateToken);
 
 		// set cookie
-		setcookie('rememberme', $cookie_string, time() + PSM_LOGIN_COOKIE_RUNTIME, "/", PSM_LOGIN_COOKIE_DOMAIN);
+		setcookie('rememberme', $cookieToken, time() + PSM_LOGIN_COOKIE_RUNTIME, "/", PSM_LOGIN_COOKIE_DOMAIN);
 		
 		return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function generatePrivateRememberMeToken()
+    {
+        return hash('sha256', mt_rand());
+    }
+
+    /**
+     * @param int $userId
+     * @param string $token
+     * @return bool
+     */
+    public function savePrivateRememberMeToken($userId, $token)
+    {
+        return $this->db_connection
+            ->prepare('UPDATE '.PSM_DB_PREFIX.'users SET rememberme_token = :user_rememberme_token WHERE user_id = :user_id')
+            ->execute([':user_rememberme_token' => $token, ':user_id' => $userId]);
+    }
+
+
+    /**
+     * @param int $userId
+     * @return string
+     */
+    public function generateAndSavePrivateRememberMeToken($userId)
+    {
+        $token = $this->generatePrivateRememberMeToken();
+        $this->savePrivateRememberMeToken($userId, $token);
+
+        return $token;
+    }
+
+    /**
+     * @param int $userId
+     * @param string $token
+     * @return string
+     */
+    public function generatePublicRememberMeToken($userId, $token)
+    {
+        $firstPart = sprintf('%d:%s', $userId, $token);
+
+        return sprintf('%s:%s', $firstPart, hash('sha256', $firstPart . PSM_LOGIN_COOKIE_SECRET_KEY));
     }
 
     /**
@@ -306,7 +348,9 @@ class User {
      * Perform the logout, resetting the session
      */
     public function doLogout() {
-        $this->deleteRememberMeCookie();
+        if ($this->getUser($this->user_id)->level != PSM_USER_OBSERVER) {
+            $this->deleteRememberMeCookie();
+        }
 
 		$this->session->clear();
 		$this->session->invalidate();
@@ -528,5 +572,29 @@ class User {
     public function getRememberedAuthenticationMethod()
     {
         return isset($_COOKIE[self::AUTHENTICATION_METHOD_COOKIE_NAME]) ? $_COOKIE[self::AUTHENTICATION_METHOD_COOKIE_NAME] : self::AUTHENTICATION_METHOD_REGULAR;
+    }
+
+    /**
+     * @param string $hashedToken
+     * @return bool
+     */
+    public function loginWithAccessToken($hashedToken)
+    {
+        $accessToken = new AccessToken($hashedToken);
+        $accessToken->unHash();
+
+        if (!$accessToken->isValid()) {
+            return false;
+        }
+
+        $user = $this->getUser($accessToken->getUserId());
+
+        if (empty($user) || $accessToken->getToken() !== $user->rememberme_token) {
+            return false;
+        }
+
+        $this->setUserLoggedIn($accessToken->getUserId(), true);
+
+        return true;
     }
 }
