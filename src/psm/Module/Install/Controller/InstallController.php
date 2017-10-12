@@ -199,24 +199,9 @@ class InstallController extends AbstractController {
 		if(!defined('PSM_DB_PREFIX') || !$this->db->status()) {
 			return $this->executeConfig();
 		}
+
 		$add_user = false;
-
-		// check if user submitted username + password in previous step
-		// this would only be the case for new installs, and install from
-		// before 3.0
-		$new_user = array(
-			'user_name' => psm_POST('username'),
-			'name' => psm_POST('username'),
-			'password' => psm_POST('password'),
-			'password_repeat' => psm_POST('password_repeat'),
-			'email' => psm_POST('email', ''),
-			'mobile' => '',
-			'level' => PSM_USER_ADMIN,
-			'pushover_key' => '',
-			'pushover_device' => '',
-		);
-
-		$validator = $this->container->get('util.user.validator');
+        $new_user = $this->getPostedUserData();
 
 		$logger = array($this, 'addMessage');
 		$installer = new \psm\Util\Install\Installer($this->db, $logger);
@@ -241,19 +226,12 @@ class InstallController extends AbstractController {
 					$add_user = true;
 				}
 			}
+		} elseif (!$this->validatePostedUserData($new_user)) {
+		    return $this->executeConfig();
 		} else {
-			// validate the lot
-			try {
-				$validator->email($new_user['email']);
-				$validator->password($new_user['password'], $new_user['password_repeat']);
-			} catch(\InvalidArgumentException $e) {
-				$this->addMessage(psm_get_lang('users', 'error_' . $e->getMessage()), 'error');
-				return $this->executeConfig();
-			}
-
 			$this->addMessage('Installation process started.', 'success');
 			$installer->install();
-			// add user
+
 			$add_user = true;
 		}
 
@@ -268,10 +246,77 @@ class InstallController extends AbstractController {
 			}
 		}
 
+		$observerId = $this->createObserverUser();
+		if ($observerId > 0) {
+		    $this->getUser()->generateAndSavePrivateRememberMeToken($observerId);
+        }
+
 		return $this->twig->render('module/install/success.tpl.html', array(
 			'messages' => $this->getMessages()
 		));
 	}
+
+    /**
+     * @return array
+     */
+	private function getPostedUserData()
+    {
+        return [
+            'user_name' => psm_POST('username'),
+            'name' => psm_POST('username'),
+            'password' => psm_POST('password'),
+            'password_repeat' => psm_POST('password_repeat'),
+            'email' => psm_POST('email', ''),
+            'mobile' => '',
+            'level' => PSM_USER_ADMIN,
+            'pushover_key' => '',
+            'pushover_device' => '',
+        ];
+    }
+
+    /**
+     * @param array $user
+     * @return bool
+     */
+    private function validatePostedUserData(array $user)
+    {
+        $validator = $this->container->get('util.user.validator');
+
+        try {
+            $validator->email($user['email']);
+            $validator->password($user['password'], $user['password_repeat']);
+        } catch(\InvalidArgumentException $e) {
+            $this->addMessage(psm_get_lang('users', 'error_' . $e->getMessage()), 'error');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return int
+     */
+    private function createObserverUser()
+    {
+        $user = [
+            'user_name' => 'observer',
+            'name' => 'observer',
+            'email' => $this->container->getParameter('observer_user_email'),
+            'mobile' => '',
+            'level' => PSM_USER_OBSERVER,
+            'pushover_key' => '',
+            'pushover_device' => '',
+        ];
+
+        $user_id = intval($this->db->save(PSM_DB_PREFIX.'users', $user));
+
+        if($user_id > 0) {
+            $this->getUser()->changePassword($user_id, uniqid('nopass').microtime());
+        }
+
+        return $user_id;
+    }
 
 	/**
 	 * Write config file with db variables

@@ -39,6 +39,9 @@ class StatusController extends AbstractServerController {
 
 		$this->setCSRFKey('status');
 		$this->setActions(array('index', 'saveLayout'), 'index');
+		$this->setMinUserLevelRequired(PSM_USER_OBSERVER);
+		$this->setMinUserLevelRequiredForAction(PSM_USER_OBSERVER, 'index');
+		$this->setMinUserLevelRequiredForAction(PSM_USER_USER, 'saveLayout');
 	}
 
 	/**
@@ -49,6 +52,13 @@ class StatusController extends AbstractServerController {
 		// set background color to black
 		$this->black_background = true;
 		$this->twig->addGlobal('subtitle', psm_get_lang('menu', 'server_status'));
+
+		if ($this->getUser()->getUser()->level == PSM_USER_OBSERVER) {
+		    $servers = $this->container->get('server_repository')->getAll();
+        } else {
+            // get the active servers of the authenticated user from database
+            $servers = $this->getServers();
+        }
 
 		// add header accessories
 		$layout = $this->getUser()->getUserPref('status_layout', 0);
@@ -62,9 +72,6 @@ class StatusController extends AbstractServerController {
 		$this->setHeaderAccessories($this->twig->render('module/server/status/header.tpl.html', $layout_data));
 
 		$this->addFooter(false);
-
-		// get the active servers from database
-		$servers = $this->getServers();
 
 		$layout_data['servers_offline'] = array();
 		$layout_data['servers_online'] = array();

@@ -80,6 +80,7 @@ $sm_lang = array(
 		'level' => 'Level',
 		'level_10' => 'Administrator',
 		'level_20' => 'User',
+		'level_25' => 'Observer',
 		'level_description' => '<b>Administrators</b> have full access: they can manage servers, users and edit the global configuration.<br/><b>Users</b> can only view and run the updater for the servers that have been assigned to them.',
 		'mobile' => 'Mobile',
 		'email' => 'Email',
@@ -104,6 +105,9 @@ $sm_lang = array(
 		'error_user_no_match' => 'The user could not be found in the database.',
 		'error_user_password_invalid' => 'The entered password is invalid.',
 		'error_user_password_no_match' => 'The entered passwords do not match.',
+        'token_generated' => 'Access token successfully created',
+        'generate_token' => 'Generate access token',
+        'copy_token' => 'Token copy',
 	),
 	'log' => array(
 		'title' => 'Log entries',

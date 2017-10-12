@@ -37,6 +37,8 @@ xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/sc
 			<parameter key="password_expiration_attr" type="constant">null</parameter>
 			<parameter key="member_id_map_attr" type="constant">null</parameter>
 		</parameter>
+
+		<parameter key="observer_user_email" type="string">webmaster@thecrewcommunication.com</parameter>
 	</parameters>
 
 	<services>
@@ -91,6 +93,10 @@ xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/sc
 		</service>
 		<service id="twig" class="Twig_Environment">
 			<argument type="service" id="twig.loader" />
+		</service>
+
+		<service id="server_repository" class="psm\Repository\ServerRepository">
+			<argument type="service" id="db" />
 		</service>
 		<!--SERVICES end-->
 

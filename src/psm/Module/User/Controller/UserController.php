@@ -43,7 +43,7 @@ class UserController extends AbstractController {
 		$this->setCSRFKey('user');
 
 		$this->setActions(array(
-			'index', 'edit', 'delete', 'save',
+			'index', 'edit', 'delete', 'save', 'generateToken'
 		), 'index');
 		$this->twig->addGlobal('subtitle', psm_get_lang('menu', 'user'));
 	}
@@ -89,7 +89,7 @@ class UserController extends AbstractController {
 		$users = $this->db->select(
 			PSM_DB_PREFIX.'users',
 			null,
-			array('user_id', 'user_name', 'level', 'name', 'mobile', 'pushover_key', 'pushover_device', 'email'),
+			array('user_id', 'user_name', 'level', 'name', 'mobile', 'pushover_key', 'pushover_device', 'email', 'rememberme_token'),
 			null,
 			array('name')
 		);
@@ -119,11 +119,18 @@ class UserController extends AbstractController {
 				'action' => 'edit',
 				'id' => $user['user_id'],
 			));
+
+			if ($user['level'] == PSM_USER_OBSERVER && empty($user['rememberme_token'])) {
+                $user['url_token_generation'] = psm_build_url(['mod' => 'user', 'action' => 'generateToken', 'id' => $user['user_id']]);
+            } elseif ($user['level'] == PSM_USER_OBSERVER) {
+                $token = $this->getUser()->generatePublicRememberMeToken($user['user_id'], $user['rememberme_token']);
+                $user['url_token'] = psm_build_url(['mod' => 'status', 'token' => $token], false, false);
+            }
 		}
 		$tpl_data = $this->getLabels();
 		$tpl_data['users'] = $users;
 
-		return $this->twig->render('module/user/user/list.tpl.html', $tpl_data);
+		return $this->twig->render('module/user/user/list.html.twig', $tpl_data);
 	}
 
 	/**
@@ -341,6 +348,8 @@ class UserController extends AbstractController {
 			'label_edit' => psm_get_lang('system', 'edit'),
 			'label_delete' => psm_get_lang('system', 'delete'),
 			'label_add_new' => psm_get_lang('system', 'add_new'),
+			'label_generate_token' => psm_get_lang('users', 'generate_token'),
+			'label_copy_token' => psm_get_lang('users', 'copy_token'),
 		);
 	}
 
@@ -362,4 +371,31 @@ class UserController extends AbstractController {
 		}
 		return $result;
 	}
+
+	public function executeGenerateToken()
+    {
+        $userId = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        if (!$userId) {
+            $this->addMessage('Missing user id', 'error');
+
+            return $this->executeIndex();
+        }
+
+        $userService = $this->getUser();
+
+        $user = $userService->getUser($userId);
+        if (!$user || $user->level != PSM_USER_OBSERVER) {
+            $this->addMessage('Missing or unauthorized user', 'error');
+
+            return $this->executeIndex();
+        }
+
+        if (!$user->rememberme_token) {
+            $userService->generateAndSavePrivateRememberMeToken($userId);
+        }
+
+        $this->addMessage(psm_get_lang('users', 'token_generated'), 'success');
+
+        return $this->executeIndex();
+    }
 }
